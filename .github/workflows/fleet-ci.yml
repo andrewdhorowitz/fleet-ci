@@ -46,7 +46,7 @@ jobs:
     env:
       PY_FILES: ${{ inputs.py_files }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
@@ -73,7 +73,7 @@ jobs:
     name: Web — JS syntax + HTML validation
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: "20"
@@ -119,7 +119,7 @@ jobs:
     name: Workflows — actionlint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - name: Download actionlint (pinned v1.7.11, official release)
         run: |
           if ls .github/workflows/*.yml .github/workflows/*.yaml >/dev/null 2>&1; then
