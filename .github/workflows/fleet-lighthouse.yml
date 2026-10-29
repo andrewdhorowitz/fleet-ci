@@ -1,0 +1,56 @@
+# Fleet Lighthouse — the repo-template kit's Lighthouse audit as a
+# REUSABLE workflow (kit v3.7, second centralization tier; baseline
+# CI moved first, in v3.6/v3.6.1). This file is the single source
+# of truth for the fleet's Lighthouse machinery. The PUBLISHED copy
+# lives in the PUBLIC repo andrewdhorowitz/fleet-ci at
+# .github/workflows/fleet-lighthouse.yml, and each fleet repo
+# carries only a thin caller (its .github/workflows/lighthouse.yml
+# keeps the name "Lighthouse" and the original triggers, with one
+# job:
+# `uses: andrewdhorowitz/fleet-ci/.github/workflows/fleet-lighthouse.yml@main`).
+# The host is public because GitHub's rule is absolute: a PUBLIC
+# repository can call only public-hosted reusable workflows.
+#
+# ONE INPUT — `urls`: the ONLY thing that genuinely differs per
+# repo (verified against the installed copies, 2026-10-29: each
+# repo audits exactly its own public page). Everything else — the
+# report-only mode, artifact upload, temporary public storage — is
+# uniform fleet policy and stays central. Jobs run in the CALLER's
+# context, exactly as when this file was copied per-repo.
+#
+# Weekly + on-demand audit of the caller's PUBLIC page with
+# Lighthouse CI, in REPORT-ONLY mode: no assertions are configured,
+# so this workflow never fails a build. The report is uploaded as
+# a run artifact and to temporary public storage (linked from the
+# run summary) for a human to read. A private or login-gated page
+# CANNOT be audited this way (Lighthouse would only see the login
+# wall) — a caller whose page sits behind sign-in audits its
+# signed-out landing page only, and should read the trend as such.
+#
+# SYNC: the copy at .github/workflows/fleet-lighthouse.yml in the
+# fleet-ci repo is generated from the kit source at
+# ci-src/fleet-lighthouse.yml (this file) — the seed/update
+# procedure copies it byte-for-byte; edit the source, re-copy, and
+# the two never drift.
+name: Fleet Lighthouse
+
+on:
+  workflow_call:
+    inputs:
+      urls:
+        description: "Public URL(s) to audit, one per line"
+        required: true
+        type: string
+
+jobs:
+  lighthouse:
+    name: Lighthouse audit (report-only)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Lighthouse CI (report-only)
+        uses: treosh/lighthouse-ci-action@v12
+        with:
+          urls: ${{ inputs.urls }}
+          uploadArtifacts: true
+          temporaryPublicStorage: true

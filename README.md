@@ -1,9 +1,9 @@
 # fleet-ci
 
 Shared continuous-integration checks for a small fleet of personal
-websites, packaged as a single GitHub Actions **reusable workflow**.
+websites, packaged as GitHub Actions **reusable workflows**.
 
-The workflow itself is
+The main workflow is
 [`.github/workflows/fleet-ci.yml`](.github/workflows/fleet-ci.yml).
 Other repositories run it with one short caller job:
 
@@ -13,7 +13,15 @@ jobs:
     uses: andrewdhorowitz/fleet-ci/.github/workflows/fleet-ci.yml@main
 ```
 
-## What it checks
+Four more fleet workflows live here on the same pattern
+(kit v3.7): `fleet-links.yml` (Markdown link-rot check),
+`fleet-lighthouse.yml` (report-only Lighthouse audit of a
+caller's public page — the caller passes its URL),
+`fleet-tests.yml` (pytest runner), and `fleet-smoke.yml`
+(Playwright smoke runner). Each is called the same way, from a
+thin caller file in the repository that uses it.
+
+## What the main workflow checks
 
 - **Python** — lint and byte-compile for the Python files a caller
   names (ruff).

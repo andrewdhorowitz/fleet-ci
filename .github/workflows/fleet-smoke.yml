@@ -1,0 +1,76 @@
+# Fleet Smoke — the repo-template kit's Playwright smoke workflow
+# as a REUSABLE workflow (kit v3.7, second centralization tier;
+# baseline CI moved first, in v3.6/v3.6.1). This file is the
+# single source of truth for the fleet's smoke-running machinery.
+# The PUBLISHED copy lives in the PUBLIC repo andrewdhorowitz/fleet-ci
+# at .github/workflows/fleet-smoke.yml. The host is public because
+# GitHub's rule is absolute: a PUBLIC repository can call only
+# public-hosted reusable workflows.
+#
+# NO INPUTS, and — as of v3.7 — NO CALLERS among the fleet's three
+# site repos: none of them carries a smoke.yml today (the only
+# smoke suite in the family lives in the Family Cards demo repo,
+# which runs its own variant CI and is out of the caller
+# migration). The machinery is generic and uniform (the standalone
+# kit source never varied per repo), so it is hosted now: a repo
+# adopts it by adding a thin caller as its
+# .github/workflows/smoke.yml (name "Smoke", the standalone
+# file's workflow_dispatch + push triggers, one job:
+# `uses: andrewdhorowitz/fleet-ci/.github/workflows/fleet-smoke.yml@main`).
+# Jobs run in the CALLER's context: the checkout step checks out
+# the caller repo, exactly as when this file was copied per-repo.
+#
+# The repo root is served over a local HTTP server and the spec in
+# smoke/ runs against it — no deployment, no secrets. Repos
+# without a smoke/ directory skip cleanly. A page behind a login
+# or a code gate can't be smoke-tested this way — the browser
+# would only ever see the gate — so gated projects should not
+# carry a caller.
+#
+# SYNC: the copy at .github/workflows/fleet-smoke.yml in the
+# fleet-ci repo is generated from the kit source at
+# ci-src/fleet-smoke.yml (this file) — the seed/update procedure
+# copies it byte-for-byte; edit the source, re-copy, and the two
+# never drift.
+name: Fleet Smoke
+
+on:
+  workflow_call:
+
+jobs:
+  smoke:
+    name: Playwright smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for a smoke suite
+        id: suite
+        run: |
+          if [ -d smoke ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "No smoke/ directory — skipping."
+          fi
+      - uses: actions/setup-node@v4
+        if: steps.suite.outputs.present == 'true'
+        with:
+          node-version: "20"
+      - name: Install Playwright + Chromium (pinned)
+        if: steps.suite.outputs.present == 'true'
+        run: |
+          npm install --no-save "@playwright/test@1.64.1"
+          npx playwright install --with-deps chromium
+      - name: Serve the repo root
+        if: steps.suite.outputs.present == 'true'
+        run: |
+          python3 -m http.server 8901 --bind 127.0.0.1 &
+          for i in $(seq 1 30); do
+            if curl -sf http://127.0.0.1:8901/ >/dev/null; then break; fi
+            sleep 1
+          done
+      - name: Run the smoke spec
+        if: steps.suite.outputs.present == 'true'
+        env:
+          SMOKE_BASE_URL: http://127.0.0.1:8901/
+        run: npx playwright test smoke/ --reporter=list

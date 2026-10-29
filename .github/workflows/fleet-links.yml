@@ -1,0 +1,51 @@
+# Fleet Links — the repo-template kit's Markdown link check as a
+# REUSABLE workflow (kit v3.7, second centralization tier; baseline
+# CI moved first, in v3.6/v3.6.1). This file is the single source
+# of truth for the fleet's link-rot check. The PUBLISHED copy lives
+# in the PUBLIC repo andrewdhorowitz/fleet-ci at
+# .github/workflows/fleet-links.yml, and each fleet repo carries
+# only a thin caller (its .github/workflows/links.yml keeps the
+# name "Links" and the original triggers, with one job:
+# `uses: andrewdhorowitz/fleet-ci/.github/workflows/fleet-links.yml@main`).
+# The host is public because GitHub's rule is absolute: a PUBLIC
+# repository can call only public-hosted reusable workflows.
+#
+# NO INPUTS: the check is byte-identical in every repo that carries
+# it (verified against the installed copies, 2026-10-29 — the same
+# lychee arguments everywhere), so there is nothing per-repo to
+# pass. Jobs run in the CALLER's context: the checkout step checks
+# out the caller repo, exactly as when this file was copied
+# per-repo.
+#
+# Weekly + on-demand link-rot check (lychee) over every link in
+# the repo's Markdown files. Schedule-driven BY DESIGN (the
+# caller's schedule trigger is what fires it): it never runs on
+# push or PR, so a rotten external link can't block work — instead
+# the weekly run fails visibly, which is the rot alarm. Loopback /
+# localhost targets and the example.* placeholder domains are
+# excluded; everything else that 404s fails the run.
+#
+# SYNC: the copy at .github/workflows/fleet-links.yml in the
+# fleet-ci repo is generated from the kit source at
+# ci-src/fleet-links.yml (this file) — the seed/update procedure
+# copies it byte-for-byte; edit the source, re-copy, and the two
+# never drift.
+name: Fleet Links
+
+on:
+  workflow_call:
+
+jobs:
+  links:
+    name: Lychee link check (Markdown)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Markdown links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress --exclude-loopback
+            --exclude 'example\.(com|org|net)'
+            './**/*.md'
+          fail: true

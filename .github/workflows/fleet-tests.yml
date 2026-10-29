@@ -1,0 +1,62 @@
+# Fleet Tests — the repo-template kit's pytest workflow as a
+# REUSABLE workflow (kit v3.7, second centralization tier; baseline
+# CI moved first, in v3.6/v3.6.1). This file is the single source
+# of truth for the fleet's test-running machinery. The PUBLISHED
+# copy lives in the PUBLIC repo andrewdhorowitz/fleet-ci at
+# .github/workflows/fleet-tests.yml. The host is public because
+# GitHub's rule is absolute: a PUBLIC repository can call only
+# public-hosted reusable workflows.
+#
+# NO INPUTS, and — as of v3.7 — NO CALLERS among the fleet's three
+# site repos: none of them carries a tests.yml today (the pytest
+# suites live in the Family Cards repos, which run their own
+# variant CI and are out of the caller migration). The machinery
+# is generic and uniform (the standalone kit source never varied
+# per repo), so it is hosted now: a repo adopts it by adding a
+# thin caller as its .github/workflows/tests.yml (name "Tests",
+# the standalone file's push + pull_request triggers, one job:
+# `uses: andrewdhorowitz/fleet-ci/.github/workflows/fleet-tests.yml@main`).
+# Jobs run in the CALLER's context: the checkout step checks out
+# the caller repo, exactly as when this file was copied per-repo.
+#
+# Runs the tests/ directory. Repos without a tests/ directory skip
+# cleanly (the guard step below), so a caller is safe even before
+# a suite exists. The suite itself must never need secrets,
+# network, or credentials — a test that does is not a unit test;
+# stub the outside world instead.
+#
+# SYNC: the copy at .github/workflows/fleet-tests.yml in the
+# fleet-ci repo is generated from the kit source at
+# ci-src/fleet-tests.yml (this file) — the seed/update procedure
+# copies it byte-for-byte; edit the source, re-copy, and the two
+# never drift.
+name: Fleet Tests
+
+on:
+  workflow_call:
+
+jobs:
+  pytest:
+    name: pytest
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for a test suite
+        id: suite
+        run: |
+          if [ -d tests ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "No tests/ directory — skipping."
+          fi
+      - uses: actions/setup-python@v5
+        if: steps.suite.outputs.present == 'true'
+        with:
+          python-version: "3.12"
+      - name: Install pytest (pinned)
+        if: steps.suite.outputs.present == 'true'
+        run: pip install "pytest==9.2.0"
+      - name: Run the suite
+        if: steps.suite.outputs.present == 'true'
+        run: python -m pytest -q

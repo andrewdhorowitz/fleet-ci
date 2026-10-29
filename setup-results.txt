@@ -1,0 +1,20 @@
+== Repo settings (via gh api) ==
+Repo: andrewdhorowitz/fleet-ci
+✓ Wiki feature off
+✓ Projects feature off
+✓ Dependabot alerts on
+✓ Dependabot security updates already on
+✓ Secret scanning already on
+✓ Secret scanning push protection already on
+– CodeQL — not applicable (this repo holds workflow YAML only; no code to scan)
+✓ Main ruleset 'main-basics' created (blocks deletions + force pushes; repo admins always bypass)
+
+== Summary ==
+✓ Wiki feature off
+✓ Projects feature off
+✓ Dependabot alerts on
+✓ Dependabot security updates already on
+✓ Secret scanning already on
+✓ Secret scanning push protection already on
+– CodeQL — not applicable (this repo holds workflow YAML only; no code to scan)
+✓ Main ruleset 'main-basics' created (blocks deletions + force pushes; repo admins always bypass)
