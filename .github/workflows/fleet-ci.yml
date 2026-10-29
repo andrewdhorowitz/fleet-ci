@@ -122,7 +122,7 @@ jobs:
       - uses: actions/checkout@v7
       - name: Download actionlint (pinned v1.7.11, official release)
         run: |
-          if ls .github/workflows/*.yml .github/workflows/*.yaml >/dev/null 2>&1; then
+          if compgen -G ".github/workflows/*.yml" >/dev/null || compgen -G ".github/workflows/*.yaml" >/dev/null; then
             curl -sSfL -o /tmp/actionlint.tar.gz \
               https://github.com/rhysd/actionlint/releases/download/v1.7.11/actionlint_1.7.11_linux_amd64.tar.gz
             tar -xzf /tmp/actionlint.tar.gz -C /tmp actionlint
