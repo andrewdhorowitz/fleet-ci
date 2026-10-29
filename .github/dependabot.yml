@@ -1,0 +1,17 @@
+# Dependabot — seed payload for the fleet-ci host repo (kit v3.6.1).
+# Copied to .github/dependabot.yml at seed time and KEPT (unlike the
+# seed's setup-host.sh, this file is part of the repo, not a
+# one-time script). Opens weekly version-update PRs for the GitHub
+# Actions pins used by fleet-ci.yml, so the shared workflow's action
+# pins stay current. (Dependabot *alerts* and *security updates* are
+# repo settings — setup-host.sh turns those on; this file is what
+# schedules the version-update PRs themselves.)
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
