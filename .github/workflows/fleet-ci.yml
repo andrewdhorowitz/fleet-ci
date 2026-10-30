@@ -30,6 +30,10 @@
 # source, re-copy, and the two never drift.
 name: Fleet CI
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   workflow_call:
     inputs:
