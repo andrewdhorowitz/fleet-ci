@@ -28,6 +28,13 @@
 # repo is generated from the kit source at ci-src/fleet-ci.yml (this
 # file) — the seed/update procedure copies it byte-for-byte; edit the
 # source, re-copy, and the two never drift.
+#
+# CONCURRENCY: do NOT add a top-level `concurrency:` block to this
+# reusable workflow. Callers carry the block (kit standard, in the
+# caller ci.yml); when BOTH caller and called workflow define
+# top-level concurrency, caller runs die at startup with zero
+# jobs (verified the hard way, Oct 30, 2026 — fleet minimums
+# Step 5 item 2). Cancellation is a caller-run property.
 name: Fleet CI
 
 
